@@ -1,0 +1,26 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environments
+env/
+venv/
+globalenv/
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+
+# Secrets - VERY IMPORTANT
+.env
+groq_api_key.txt
+
+# Generated content folders
+uploads/
+vector_stores/
+logs/
+*.log
+*.faiss

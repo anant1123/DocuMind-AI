@@ -1,0 +1,14 @@
+Flask
+werkzeug
+requests
+langchain
+langchain-community
+langchain-groq
+faiss-cpu
+sentence-transformers
+markdown-it-py
+PyMuPDF
+pdfplumber
+pandas
+python-dotenv
+gunicorn

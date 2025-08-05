@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMind AI - Multi-PDF Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #f8f9fa;
+            --surface: #ffffff;
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--background); color: var(--text-primary); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
+        .chat-container { width: 100%; max-width: 800px; height: 90vh; max-height: 800px; background-color: var(--surface); border-radius: 1rem; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .chat-header .title-wrapper h1 { font-size: 1.5rem; font-weight: 700; }
+        .pdf-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.8rem; }
+        .pdf-info .filename-tag { font-weight: 500; background-color: #f3f4f6; padding: 0.2rem 0.5rem; border-radius: 0.25rem; }
+        .pdf-info .filename-tag a { color: var(--primary); text-decoration: none; }
+        .pdf-info .filename-tag a:hover { text-decoration: underline; }
+        .new-chat-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background-color: var(--primary); color: white; border: none; border-radius: 0.5rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; text-decoration: none; }
+        .new-chat-btn:hover { background-color: #1d4ed8; }
+        .flash-messages { padding: 0 1.5rem; margin-top: 1rem; }
+        .flash { padding: 1rem; border-radius: 0.5rem; font-size: 0.9rem; }
+        .flash.success { background: #dcfce7; color: #166534; } .flash.error { background: #fee2e2; color: #b91c1c; } .flash.info { background: #e0f2fe; color: #075985;}
+        .chat-window { flex-grow: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        .chat-window .placeholder { margin: auto; text-align: center; color: var(--text-secondary); }
+        .chat-window .placeholder svg { width: 50px; height: 50px; margin-bottom: 1rem; stroke: #d1d5db; }
+        .message-wrapper { display: flex; gap: 1rem; max-width: 85%; }
+        .message-wrapper.user { align-self: flex-end; flex-direction: row-reverse; }
+        .message-wrapper.assistant { align-self: flex-start; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 500; flex-shrink: 0; color: white; }
+        .avatar.user-avatar { background-color: #7c3aed; } .avatar.assistant-avatar { background-color: #16a34a; }
+        .message-content { background-color: var(--background); padding: 0.75rem 1rem; border-radius: 0.75rem; }
+        .message-wrapper.user .message-content { background-color: var(--primary-light); }
+        .message-content p, .message-content ul, .message-content ol { line-height: 1.6; margin-bottom: 0.5rem; } .message-content ul, .message-content ol { padding-left: 1.25rem; }
+        .sources-section { margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 0.75rem; }
+        .sources-btn { font-size: 0.8rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; }
+        .sources-content { display: none; margin-top: 0.5rem; font-size: 0.8rem; background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; max-height: 150px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; color: var(--text-secondary); }
+        .chat-input-area { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background-color: #f8f9fa; flex-shrink: 0; }
+        #file-preview-container { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .file-preview-tag { display: flex; align-items: center; gap: 0.5rem; background-color: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 500; }
+        .remove-file-btn { background: none; border: none; color: #4338ca; font-size: 1rem; cursor: pointer; line-height: 1; } .remove-file-btn:hover { color: #ef4444; }
+        .input-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+        #query-input { flex-grow: 1; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem; background-color: var(--surface); }
+        #query-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+        .icon-btn { background-color: var(--surface); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; cursor: pointer; display: flex; }
+        .icon-btn:hover { background-color: #f1f5f9; }
+        .send-btn { background-color: var(--primary); border: none; } .send-btn:hover { background-color: #1d4ed8; } .send-btn svg { color: white; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="title-wrapper">
+                <h1>DocuMind AI</h1>
+                {% if session.get('pdf_filenames') %}
+                <div class="pdf-info">
+                    {% for filename in session.get('pdf_filenames', []) %}
+                    <span class="filename-tag">
+                        <a href="{{ url_for('view_pdf_file', filename=filename) }}" target="_blank">{{ filename }}</a>
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('new_chat') }}" class="new-chat-btn">New Chat</a>
+        </header>
+
+        <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        </div>
+
+        <main class="chat-window" id="chatWindow">
+            {% if not session.get('chat_history') %}
+            <div class="placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                <h3>Ask questions across your documents</h3>
+                <p>Attach up to 5 PDFs using the paperclip icon and ask your first question.</p>
+            </div>
+            {% else %}
+            {% for message in session.get('chat_history', []) %}
+                 <div class="message-wrapper {{ message.role }}">
+                    <div class="avatar {{ message.role }}-avatar">{{ 'A' if message.role == 'assistant' else 'Y' }}</div>
+                    <div class="message-content">
+                        {{ message.content | markdown | safe }}
+                        {% if message.role == 'assistant' and loop.last and session.get('sources') %}
+                        <div class="sources-section">
+                            <button class="sources-btn" onclick="toggleSources(this)">Show Sources</button>
+                            <div class="sources-content" style="display:none;">
+                                {% for source in session.get('sources', []) %}
+                                    <div class="source-excerpt">{{ source }}<hr style="margin: 8px 0; border-color: #e5e7eb;"></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            {% endif %}
+        </main>
+
+        <footer class="chat-input-area">
+            <form method="post" enctype="multipart/form-data" id="chat-form">
+                <div id="file-preview-container"></div>
+                <div class="input-wrapper">
+                    <input type="file" id="files-input" name="files" accept=".pdf" multiple>
+                    <label for="files-input" class="icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </label>
+                    <input type="text" id="query-input" name="query" placeholder="Ask a question..." required autocomplete="off">
+                    <button type="submit" class="icon-btn send-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </form>
+        </footer>
+    </div>
+    
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        const fileInput = document.getElementById('files-input');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        let fileStore = new DataTransfer();
+
+        window.addEventListener('load', () => {
+            if(chatWindow){ chatWindow.scrollTop = chatWindow.scrollHeight; }
+        });
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const existingFiles = new Set(Array.from(fileStore.files).map(f => f.name));
+                for (const file of e.target.files) {
+                    if (!existingFiles.has(file.name)) {
+                        fileStore.items.add(file);
+                    }
+                }
+                fileInput.files = fileStore.files;
+                renderFilePreview();
+            });
+        }
+
+        function renderFilePreview() {
+            filePreviewContainer.innerHTML = '';
+            Array.from(fileStore.files).forEach((file, index) => {
+                const fileTag = document.createElement('div');
+                fileTag.className = 'file-preview-tag';
+                fileTag.innerHTML = `
+                    <span>${file.name}</span>
+                    <button type="button" class="remove-file-btn" data-index="${index}">&times;</button>
+                `;
+                filePreviewContainer.appendChild(fileTag);
+            });
+        }
+        
+        filePreviewContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-file-btn')) {
+                const indexToRemove = parseInt(e.target.dataset.index);
+                const newStore = new DataTransfer();
+                Array.from(fileStore.files).forEach((file, i) => {
+                    if (i !== indexToRemove) newStore.items.add(file);
+                });
+                
+                fileStore = newStore;
+                fileInput.files = fileStore.files;
+                renderFilePreview();
+            }
+        });
+
+        function toggleSources(button) {
+            const sourcesContent = button.nextElementSibling;
+            if (sourcesContent.style.display === 'none' || sourcesContent.style.display === '') {
+                sourcesContent.style.display = 'block';
+                button.textContent = 'Hide Sources';
+            } else {
+                sourcesContent.style.display = 'none';
+                button.textContent = 'Show Sources';
+            }
+        }
+    </script>
+</body>
+</html>

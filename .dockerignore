@@ -1,0 +1,21 @@
+# Git and Docker files
+.git
+.gitignore
+Dockerfile
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Virtual Environments
+.venv
+globalenv/
+
+# Secrets
+.env
+groq_api_key.txt
+
+# Generated content folders
+uploads/
+vector_stores/
+logs/
