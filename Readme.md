@@ -1,4 +1,3 @@
-Of course. Here is a professionally crafted README file for your project, drawing inspiration from your reference and detailing the specifics of your application's architecture and functionality.
 
 🧠 DocuMind AI: Intelligent Document Chat
 DocuMind AI is a powerful and intuitive web application that allows you to chat with your documents. Upload multiple PDFs and ask questions to get intelligent, context-aware answers instantly. This project uses a Retrieval-Augmented Generation (RAG) pipeline, powered by the latest models, to provide accurate information grounded in the content of your uploaded files.
