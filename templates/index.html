@@ -64,9 +64,9 @@
         <header class="chat-header">
             <div class="title-wrapper">
                 <h1>DocuMind AI</h1>
-                {% if session.get('pdf_filenames') %}
+                {% if session_data.get('pdf_filenames') %}
                 <div class="pdf-info">
-                    {% for filename in session.get('pdf_filenames', []) %}
+                    {% for filename in session_data.get('pdf_filenames', []) %}
                     <span class="filename-tag">
                         <a href="{{ url_for('view_pdf_file', filename=filename) }}" target="_blank">{{ filename }}</a>
                     </span>
@@ -88,23 +88,23 @@
         </div>
 
         <main class="chat-window" id="chatWindow">
-            {% if not session.get('chat_history') %}
+            {% if not session_data.get('chat_history') %}
             <div class="placeholder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
                 <h3>Ask questions across your documents</h3>
                 <p>Attach up to 5 PDFs using the paperclip icon and ask your first question.</p>
             </div>
             {% else %}
-            {% for message in session.get('chat_history', []) %}
+            {% for message in session_data.get('chat_history', []) %}
                  <div class="message-wrapper {{ message.role }}">
                     <div class="avatar {{ message.role }}-avatar">{{ 'A' if message.role == 'assistant' else 'Y' }}</div>
                     <div class="message-content">
                         {{ message.content | markdown | safe }}
-                        {% if message.role == 'assistant' and loop.last and session.get('sources') %}
+                        {% if message.role == 'assistant' and loop.last and session_data.get('sources') %}
                         <div class="sources-section">
                             <button class="sources-btn" onclick="toggleSources(this)">Show Sources</button>
                             <div class="sources-content" style="display:none;">
-                                {% for source in session.get('sources', []) %}
+                                {% for source in session_data.get('sources', []) %}
                                     <div class="source-excerpt">{{ source }}<hr style="margin: 8px 0; border-color: #e5e7eb;"></div>
                                 {% endfor %}
                             </div>
